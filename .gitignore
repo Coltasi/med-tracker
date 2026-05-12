@@ -30,6 +30,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# cowork / claude session artifacts
+.cache
+.claude
+setup.sh
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
