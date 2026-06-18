@@ -11,12 +11,13 @@ interface Props {
 }
 
 const METRICS = [
-  { key: "mood",         label: "Mood",       color: "#0ea5e9" },
-  { key: "energy",       label: "Energy",     color: "#10b981" },
-  { key: "anxiety",      label: "Anxiety",    color: "#f59e0b" },
-  { key: "depression",   label: "Depres.",    color: "#8b5cf6" },
+  { key: "mood",         label: "Mood",       color: "#10b981" },
+  { key: "energy",       label: "Energy",     color: "#0ea5e9" },
+  { key: "anxiety",      label: "Anxiety",    color: "#ef4444" },
+  { key: "depression",   label: "Depres.",    color: "#b91c1c" },
   { key: "sleepQuality", label: "Sleep",      color: "#06b6d4" },
-  { key: "appetite",     label: "Appetite",   color: "#f97316" },
+  { key: "appetite",     label: "Appetite",   color: "#14b8a6" },
+  { key: "sexDrive",     label: "Sex Drive",  color: "#22c55e" },
 ] as const;
 
 function MiniBar({ value, color }: { value: number; color: string }) {
@@ -61,7 +62,7 @@ function CheckInCard({ entry, onDelete }: { entry: CheckIn; onDelete: () => void
 
         {/* Mini summary row */}
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-          {METRICS.map(({ key, label, color }) => (
+          {METRICS.filter(({ key }) => typeof entry[key] === "number").map(({ key, label, color }) => (
             <div key={key} className="flex items-center gap-1">
               <span className="text-xs text-gray-400">{label}</span>
               <span
@@ -72,19 +73,45 @@ function CheckInCard({ entry, onDelete }: { entry: CheckIn; onDelete: () => void
               </span>
             </div>
           ))}
+          {entry.exercise && (
+            <span className="text-xs font-medium text-emerald-600">🏃 Exercise</span>
+          )}
+          {entry.breathwork && (
+            <span className="text-xs font-medium text-sky-600">🧘 Breathwork</span>
+          )}
         </div>
       </button>
 
       {expanded && (
         <div className="px-4 pb-4 border-t border-gray-50 pt-3 space-y-3">
           <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-            {METRICS.map(({ key, label, color }) => (
+            {METRICS.filter(({ key }) => typeof entry[key] === "number").map(({ key, label, color }) => (
               <div key={key} className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">{label}</span>
-                <MiniBar value={entry[key]} color={color} />
+                <MiniBar value={entry[key] as number} color={color} />
               </div>
             ))}
           </div>
+
+          {(entry.exercise || entry.breathwork) && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Habits
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {entry.exercise && (
+                  <span className="text-xs bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full">
+                    🏃 Exercise
+                  </span>
+                )}
+                {entry.breathwork && (
+                  <span className="text-xs bg-sky-50 text-sky-600 border border-sky-100 px-2 py-0.5 rounded-full">
+                    🧘 Breathwork
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {entry.sideEffects.length > 0 && (
             <div>

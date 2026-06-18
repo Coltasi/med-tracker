@@ -87,6 +87,9 @@ export default function CheckInForm({ data, onSaved }: Props) {
   const [depression, setDepression] = useState(5);
   const [sleepQuality, setSleepQuality] = useState(5);
   const [appetite, setAppetite] = useState(5);
+  const [sexDrive, setSexDrive] = useState(5);
+  const [exercise, setExercise] = useState(false);
+  const [breathwork, setBreathwork] = useState(false);
   const [sideEffects, setSideEffects] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState(false);
@@ -107,6 +110,9 @@ export default function CheckInForm({ data, onSaved }: Props) {
       depression,
       sleepQuality,
       appetite,
+      sexDrive,
+      exercise,
+      breathwork,
       sideEffects,
       notes,
       dosage: data.currentDosage,
@@ -154,7 +160,7 @@ export default function CheckInForm({ data, onSaved }: Props) {
         description="Overall emotional state"
         value={mood}
         onChange={setMood}
-        color="#0ea5e9"
+        color="#10b981"
         lowLabel="Very low"
         highLabel="Excellent"
       />
@@ -163,7 +169,7 @@ export default function CheckInForm({ data, onSaved }: Props) {
         description="Physical & mental energy levels"
         value={energy}
         onChange={setEnergy}
-        color="#10b981"
+        color="#0ea5e9"
         lowLabel="Exhausted"
         highLabel="Very energised"
       />
@@ -172,7 +178,7 @@ export default function CheckInForm({ data, onSaved }: Props) {
         description="Nervousness, tension, worry"
         value={anxiety}
         onChange={setAnxiety}
-        color="#f59e0b"
+        color="#ef4444"
         lowLabel="None"
         highLabel="Severe"
       />
@@ -181,7 +187,7 @@ export default function CheckInForm({ data, onSaved }: Props) {
         description="Low mood, hopelessness, motivation"
         value={depression}
         onChange={setDepression}
-        color="#8b5cf6"
+        color="#b91c1c"
         lowLabel="None"
         highLabel="Severe"
       />
@@ -199,10 +205,78 @@ export default function CheckInForm({ data, onSaved }: Props) {
         description="Hunger & enjoyment of food"
         value={appetite}
         onChange={setAppetite}
-        color="#f97316"
+        color="#14b8a6"
         lowLabel="No appetite"
         highLabel="Normal"
       />
+      <Slider
+        label="Sex Drive"
+        description="Interest & desire"
+        value={sexDrive}
+        onChange={setSexDrive}
+        color="#22c55e"
+        lowLabel="None"
+        highLabel="Very high"
+      />
+
+      {/* Habits */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <p className="font-semibold text-gray-800 mb-3">Today&apos;s Habits</p>
+        <div className="grid grid-cols-2 gap-2">
+          <label
+            className={`flex items-center gap-2 text-sm p-2 rounded-xl cursor-pointer border transition-colors ${
+              exercise
+                ? "bg-emerald-50 border-emerald-300 text-emerald-700"
+                : "border-gray-100 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={exercise}
+              onChange={() => setExercise((v) => !v)}
+              className="sr-only"
+            />
+            <span
+              className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center ${
+                exercise ? "bg-emerald-500 border-emerald-500" : "border-gray-300"
+              }`}
+            >
+              {exercise && (
+                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </span>
+            Got meaningful exercise
+          </label>
+          <label
+            className={`flex items-center gap-2 text-sm p-2 rounded-xl cursor-pointer border transition-colors ${
+              breathwork
+                ? "bg-sky-50 border-sky-300 text-sky-700"
+                : "border-gray-100 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={breathwork}
+              onChange={() => setBreathwork((v) => !v)}
+              className="sr-only"
+            />
+            <span
+              className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center ${
+                breathwork ? "bg-sky-500 border-sky-500" : "border-gray-300"
+              }`}
+            >
+              {breathwork && (
+                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </span>
+            Did breathwork
+          </label>
+        </div>
+      </div>
 
       {/* Side effects */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">

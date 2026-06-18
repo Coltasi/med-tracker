@@ -8,6 +8,9 @@ export interface CheckIn {
   depression: number;    // 1-10
   sleepQuality: number;  // 1-10
   appetite: number;      // 1-10
+  sexDrive?: number;     // 1-10 (optional: absent on entries logged before this field existed)
+  exercise?: boolean;    // got meaningful exercise today
+  breathwork?: boolean;  // did breathwork at least once today
   sideEffects: string[];
   notes: string;
   dosage: string;        // e.g. "150mg XL"

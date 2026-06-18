@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { AppData } from "@/types";
 import {
   LineChart,
@@ -18,13 +19,16 @@ interface Props {
   onNewCheckIn: () => void;
 }
 
+// "Bad" metrics (high = bad) get warning/red tones. Everything else (high = good)
+// gets a distinct, non-red color so good vs. bad is unambiguous at a glance.
 const METRIC_COLORS: Record<string, string> = {
-  mood:         "#0ea5e9",
-  energy:       "#10b981",
-  anxiety:      "#f59e0b",
-  depression:   "#8b5cf6",
-  sleepQuality: "#06b6d4",
-  appetite:     "#f97316",
+  mood:         "#10b981", // emerald - good
+  energy:       "#0ea5e9", // sky - good
+  anxiety:      "#ef4444", // red - bad
+  depression:   "#b91c1c", // dark red - bad
+  sleepQuality: "#06b6d4", // cyan - good
+  appetite:     "#14b8a6", // teal - good
+  sexDrive:     "#22c55e", // green - good
 };
 
 const METRIC_LABELS: Record<string, string> = {
@@ -34,23 +38,26 @@ const METRIC_LABELS: Record<string, string> = {
   depression:   "Depression",
   sleepQuality: "Sleep",
   appetite:     "Appetite",
+  sexDrive:     "Sex Drive",
 };
+
+const BAD_METRICS = new Set(["anxiety", "depression"]);
 
 function ScoreCard({
   label,
   value,
   color,
   trend,
+  isBad,
 }: {
   label: string;
   value: number;
   color: string;
   trend: number;
+  isBad: boolean;
 }) {
   const trendIcon = trend > 0 ? "↑" : trend < 0 ? "↓" : "→";
-  const isPositive = (label === "Anxiety" || label === "Depression")
-    ? trend < 0
-    : trend > 0;
+  const isPositive = isBad ? trend < 0 : trend > 0;
   const trendColor =
     trend === 0
       ? "text-gray-400"
@@ -84,7 +91,18 @@ function ScoreCard({
   );
 }
 
+type MetricKey =
+  | "mood"
+  | "energy"
+  | "anxiety"
+  | "depression"
+  | "sleepQuality"
+  | "appetite"
+  | "sexDrive";
+
 export default function Dashboard({ data, onNewCheckIn }: Props) {
+  const [selectedMetric, setSelectedMetric] = useState<"all" | MetricKey>("all");
+
   const recent = data.checkIns.slice(0, 14).reverse();
 
   const chartData = recent.map((c) => ({
@@ -95,6 +113,7 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
     depression: c.depression,
     sleepQuality: c.sleepQuality,
     appetite: c.appetite,
+    sexDrive: c.sexDrive ?? null,
     dosage: c.dosage,
   }));
 
@@ -102,18 +121,32 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
   const latest = data.checkIns[0];
   const prev = data.checkIns[1];
 
-  const metrics = ["mood", "energy", "anxiety", "depression", "sleepQuality", "appetite"] as const;
+  const metrics = [
+    "mood",
+    "energy",
+    "anxiety",
+    "depression",
+    "sleepQuality",
+    "appetite",
+    "sexDrive",
+  ] as const;
 
-  function avg(key: typeof metrics[number]) {
-    if (!data.checkIns.length) return 0;
-    return data.checkIns.slice(0, 7).reduce((s, c) => s + c[key], 0) /
-      Math.min(7, data.checkIns.length);
+  function avg(key: MetricKey) {
+    const valid = data.checkIns
+      .slice(0, 7)
+      .filter((c) => typeof c[key] === "number") as Array<Record<MetricKey, number>>;
+    if (!valid.length) return 0;
+    return valid.reduce((s, c) => s + c[key], 0) / valid.length;
   }
 
-  function trend(key: typeof metrics[number]) {
+  function trend(key: MetricKey) {
     if (!latest || !prev) return 0;
-    return latest[key] - prev[key];
+    if (typeof latest[key] !== "number" || typeof prev[key] !== "number") return 0;
+    return (latest[key] as number) - (prev[key] as number);
   }
+
+  const linesToShow: readonly MetricKey[] =
+    selectedMetric === "all" ? metrics : [selectedMetric];
 
   const todayCheckedIn =
     latest?.date === new Date().toISOString().split("T")[0];
@@ -185,6 +218,7 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
                   value={avg(key)}
                   color={METRIC_COLORS[key]}
                   trend={trend(key)}
+                  isBad={BAD_METRICS.has(key)}
                 />
               ))}
             </div>
@@ -193,9 +227,23 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
           {/* Trend chart */}
           {chartData.length > 1 && (
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
-                14-Day Trend
-              </h2>
+              <div className="flex items-center justify-between mb-4 gap-3">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                  14-Day Trend
+                </h2>
+                <select
+                  value={selectedMetric}
+                  onChange={(e) => setSelectedMetric(e.target.value as "all" | MetricKey)}
+                  className="text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
+                >
+                  <option value="all">All metrics</option>
+                  {metrics.map((key) => (
+                    <option key={key} value={key}>
+                      {METRIC_LABELS[key]}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -208,19 +256,20 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
                       boxShadow: "0 4px 6px -1px rgba(0,0,0,0.07)",
                     }}
                   />
-                  <Legend
-                    wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
-                  />
-                  {metrics.map((key) => (
+                  {selectedMetric === "all" && (
+                    <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                  )}
+                  {linesToShow.map((key) => (
                     <Line
                       key={key}
                       type="monotone"
                       dataKey={key}
                       name={METRIC_LABELS[key]}
                       stroke={METRIC_COLORS[key]}
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 4 }}
+                      strokeWidth={selectedMetric === "all" ? 2 : 3}
+                      dot={selectedMetric === "all" ? false : { r: 3 }}
+                      activeDot={{ r: 5 }}
+                      connectNulls
                     />
                   ))}
                 </LineChart>
