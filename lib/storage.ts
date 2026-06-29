@@ -48,6 +48,18 @@ export function addCheckIn(
   return data;
 }
 
+export function updateCheckIn(
+  id: string,
+  updates: Omit<CheckIn, "id" | "timestamp">
+): AppData {
+  const data = getData();
+  data.checkIns = data.checkIns.map((c) =>
+    c.id === id ? { ...updates, id: c.id, timestamp: c.timestamp } : c
+  );
+  saveData(data);
+  return data;
+}
+
 export function deleteCheckIn(id: string): AppData {
   const data = getData();
   data.checkIns = data.checkIns.filter((c) => c.id !== id);

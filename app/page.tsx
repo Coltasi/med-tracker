@@ -21,6 +21,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [data, setData] = useState<AppData | null>(null);
+  const [editDate, setEditDate] = useState<string | null>(null);
 
   useEffect(() => {
     setData(getData());
@@ -31,6 +32,12 @@ export default function Home() {
   }
 
   function handleNewCheckIn() {
+    setEditDate(null);
+    setTab("checkin");
+  }
+
+  function handleEditDate(date: string) {
+    setEditDate(date);
     setTab("checkin");
   }
 
@@ -70,13 +77,14 @@ export default function Home() {
         {tab === "checkin" && (
           <CheckInForm
             data={data}
+            initialDate={editDate ?? undefined}
             onSaved={(updated) => {
               handleDataChange(updated);
             }}
           />
         )}
         {tab === "history" && (
-          <History data={data} onUpdate={handleDataChange} />
+          <History data={data} onUpdate={handleDataChange} onEdit={handleEditDate} />
         )}
         {tab === "settings" && (
           <Settings data={data} onUpdate={handleDataChange} />
@@ -88,7 +96,10 @@ export default function Home() {
         {TABS.map((t) => (
           <button
             key={t.id}
-            onClick={() => setTab(t.id)}
+            onClick={() => {
+              if (t.id === "checkin") setEditDate(null);
+              setTab(t.id);
+            }}
             className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl transition-colors ${
               tab === t.id
                 ? "text-brand-600"

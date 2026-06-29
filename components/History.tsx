@@ -8,6 +8,7 @@ import { format, parseISO } from "date-fns";
 interface Props {
   data: AppData;
   onUpdate: (data: AppData) => void;
+  onEdit: (date: string) => void;
 }
 
 const METRICS = [
@@ -34,7 +35,15 @@ function MiniBar({ value, color }: { value: number; color: string }) {
   );
 }
 
-function CheckInCard({ entry, onDelete }: { entry: CheckIn; onDelete: () => void }) {
+function CheckInCard({
+  entry,
+  onDelete,
+  onEdit,
+}: {
+  entry: CheckIn;
+  onDelete: () => void;
+  onEdit: () => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
@@ -140,7 +149,7 @@ function CheckInCard({ entry, onDelete }: { entry: CheckIn; onDelete: () => void
             </div>
           )}
 
-          <div className="pt-1">
+          <div className="pt-1 flex items-center gap-3">
             {confirming ? (
               <div className="flex gap-2">
                 <button
@@ -157,12 +166,20 @@ function CheckInCard({ entry, onDelete }: { entry: CheckIn; onDelete: () => void
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => setConfirming(true)}
-                className="text-xs text-red-400 hover:text-red-600 transition-colors"
-              >
-                Delete entry
-              </button>
+              <>
+                <button
+                  onClick={onEdit}
+                  className="text-xs text-brand-500 hover:text-brand-700 transition-colors font-medium"
+                >
+                  Edit entry
+                </button>
+                <button
+                  onClick={() => setConfirming(true)}
+                  className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                >
+                  Delete entry
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -171,7 +188,7 @@ function CheckInCard({ entry, onDelete }: { entry: CheckIn; onDelete: () => void
   );
 }
 
-export default function History({ data, onUpdate }: Props) {
+export default function History({ data, onUpdate, onEdit }: Props) {
   const [search, setSearch] = useState("");
 
   const filtered = data.checkIns.filter(
@@ -214,6 +231,7 @@ export default function History({ data, onUpdate }: Props) {
               key={entry.id}
               entry={entry}
               onDelete={() => handleDelete(entry.id)}
+              onEdit={() => onEdit(entry.date)}
             />
           ))}
         </div>

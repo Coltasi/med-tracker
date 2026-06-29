@@ -5,6 +5,8 @@ import { AppData } from "@/types";
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -114,8 +116,13 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
     sleepQuality: c.sleepQuality,
     appetite: c.appetite,
     sexDrive: c.sexDrive ?? null,
+    exercise: c.exercise ? 1 : 0,
+    breathwork: c.breathwork ? 1 : 0,
     dosage: c.dosage,
   }));
+
+  const exerciseCount = recent.filter((c) => c.exercise).length;
+  const breathworkCount = recent.filter((c) => c.breathwork).length;
 
   // Latest vs previous averages for trend
   const latest = data.checkIns[0];
@@ -274,6 +281,37 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
                   ))}
                 </LineChart>
               </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Habit chart */}
+          {chartData.length > 1 && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+                Habits (14-Day)
+              </h2>
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                  <YAxis domain={[0, 1]} ticks={[0, 1]} tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                  <Tooltip
+                    formatter={(value: number) => (value ? "Yes" : "No")}
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "1px solid #e2e8f0",
+                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.07)",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                  <Bar dataKey="exercise" name="Exercise" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={14} />
+                  <Bar dataKey="breathwork" name="Breathwork" fill="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={14} />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="flex justify-around mt-3 text-xs text-gray-500">
+                <span>🏃 Exercise: {exerciseCount}/{recent.length} days</span>
+                <span>🧘 Breathwork: {breathworkCount}/{recent.length} days</span>
+              </div>
             </div>
           )}
 
