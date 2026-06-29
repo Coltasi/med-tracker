@@ -82,6 +82,9 @@ function CheckInCard({
               </span>
             </div>
           ))}
+          {typeof entry.sleepHours === "number" && (
+            <span className="text-xs font-medium text-cyan-600">😴 {entry.sleepHours}h</span>
+          )}
           {entry.exercise && (
             <span className="text-xs font-medium text-emerald-600">🏃 Exercise</span>
           )}
@@ -101,6 +104,13 @@ function CheckInCard({
               </div>
             ))}
           </div>
+
+          {typeof entry.sleepHours === "number" && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Hours Slept</span>
+              <span className="text-xs font-bold text-cyan-600">{entry.sleepHours}h</span>
+            </div>
+          )}
 
           {(entry.exercise || entry.breathwork) && (
             <div>

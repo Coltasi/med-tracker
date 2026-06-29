@@ -85,6 +85,7 @@ interface FormState {
   sleepQuality: number;
   appetite: number;
   sexDrive: number;
+  sleepHours: number;
   exercise: boolean;
   breathwork: boolean;
   sideEffects: string[];
@@ -109,6 +110,7 @@ function defaultsFor(entry: CheckIn | undefined, fallbackDosage: string): FormSt
     sleepQuality: entry?.sleepQuality ?? 5,
     appetite: entry?.appetite ?? 5,
     sexDrive: entry?.sexDrive ?? 5,
+    sleepHours: entry?.sleepHours ?? 7,
     exercise: entry?.exercise ?? false,
     breathwork: entry?.breathwork ?? false,
     sideEffects: entry?.sideEffects ?? [],
@@ -265,6 +267,38 @@ export default function CheckInForm({ data, initialDate, onSaved }: Props) {
         lowLabel="Terrible"
         highLabel="Excellent"
       />
+
+      {/* Hours slept */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <p className="font-semibold text-gray-800">Hours Slept</p>
+            <p className="text-xs text-gray-400">Total time asleep last night</p>
+          </div>
+          <span className="text-2xl font-bold min-w-[3rem] text-right text-cyan-600">
+            {form.sleepHours}h
+          </span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={12}
+          step={0.5}
+          value={form.sleepHours}
+          onChange={(e) => update("sleepHours", Number(e.target.value))}
+          className="w-full"
+          style={{
+            background: `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${
+              (form.sleepHours / 12) * 100
+            }%, #e2e8f0 ${(form.sleepHours / 12) * 100}%, #e2e8f0 100%)`,
+          }}
+        />
+        <div className="flex justify-between mt-1">
+          <span className="text-xs text-gray-400">0h</span>
+          <span className="text-xs text-gray-400">12h</span>
+        </div>
+      </div>
+
       <Slider
         label="Appetite"
         description="Hunger & enjoyment of food"

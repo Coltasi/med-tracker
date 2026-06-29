@@ -9,6 +9,7 @@ export interface CheckIn {
   sleepQuality: number;  // 1-10
   appetite: number;      // 1-10
   sexDrive?: number;     // 1-10 (optional: absent on entries logged before this field existed)
+  sleepHours?: number;   // hours slept last night (optional: absent on older entries)
   exercise?: boolean;    // got meaningful exercise today
   breathwork?: boolean;  // did breathwork at least once today
   sideEffects: string[];

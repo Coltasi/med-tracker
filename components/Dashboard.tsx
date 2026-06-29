@@ -116,6 +116,7 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
     sleepQuality: c.sleepQuality,
     appetite: c.appetite,
     sexDrive: c.sexDrive ?? null,
+    sleepHours: c.sleepHours ?? null,
     exercise: c.exercise ? 1 : 0,
     breathwork: c.breathwork ? 1 : 0,
     dosage: c.dosage,
@@ -123,6 +124,11 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
 
   const exerciseCount = recent.filter((c) => c.exercise).length;
   const breathworkCount = recent.filter((c) => c.breathwork).length;
+
+  const sleepHoursEntries = recent.filter((c) => typeof c.sleepHours === "number");
+  const avgSleepHours = sleepHoursEntries.length
+    ? sleepHoursEntries.reduce((s, c) => s + (c.sleepHours as number), 0) / sleepHoursEntries.length
+    : 0;
 
   // Latest vs previous averages for trend
   const latest = data.checkIns[0];
@@ -312,6 +318,45 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
                 <span>🏃 Exercise: {exerciseCount}/{recent.length} days</span>
                 <span>🧘 Breathwork: {breathworkCount}/{recent.length} days</span>
               </div>
+            </div>
+          )}
+
+          {/* Sleep hours chart */}
+          {chartData.length > 1 && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                  Sleep (14-Day)
+                </h2>
+                <span className="text-xs font-medium text-cyan-600">
+                  avg {avgSleepHours.toFixed(1)}h
+                </span>
+              </div>
+              <ResponsiveContainer width="100%" height={180}>
+                <LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                  <YAxis domain={[0, 12]} tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                  <Tooltip
+                    formatter={(value: number) => `${value}h`}
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "1px solid #e2e8f0",
+                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.07)",
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="sleepHours"
+                    name="Hours Slept"
+                    stroke="#06b6d4"
+                    strokeWidth={2.5}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                    connectNulls
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           )}
 
