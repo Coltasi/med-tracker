@@ -27,10 +27,13 @@ interface Props {
   onNewCheckIn: () => void;
 }
 
+const INSIGHT_EXPANDED_KEY = "med-tracker-insight-expanded";
+
 function AIInsightCard({ data }: { data: AppData }) {
   const [insight, setInsight] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(true);
 
   function generate() {
     setLoading(true);
@@ -47,6 +50,9 @@ function AIInsightCard({ data }: { data: AppData }) {
   }
 
   useEffect(() => {
+    const storedExpanded = localStorage.getItem(INSIGHT_EXPANDED_KEY);
+    if (storedExpanded !== null) setExpanded(storedExpanded === "true");
+
     if (data.checkIns.length === 0) return;
     const cached = getCachedInsight();
     if (isInsightFresh(cached)) {
@@ -57,31 +63,61 @@ function AIInsightCard({ data }: { data: AppData }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function toggleExpanded() {
+    setExpanded((v) => {
+      const next = !v;
+      localStorage.setItem(INSIGHT_EXPANDED_KEY, String(next));
+      return next;
+    });
+  }
+
   if (data.checkIns.length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-br from-violet-50 to-brand-50 rounded-2xl p-5 shadow-sm border border-violet-100">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-semibold text-violet-700 uppercase tracking-wide flex items-center gap-1.5">
+    <div className="bg-gradient-to-br from-violet-50 to-brand-50 rounded-2xl shadow-sm border border-violet-100 overflow-hidden">
+      <button
+        onClick={toggleExpanded}
+        className="w-full flex items-center justify-between gap-3 p-5 text-left"
+      >
+        <h2 className="text-sm font-semibold text-violet-700 uppercase tracking-wide flex items-center gap-1.5 flex-shrink-0">
           <span>✨</span> Daily Insight
         </h2>
-        {!loading && (
-          <button
-            onClick={generate}
-            className="text-xs text-violet-500 hover:text-violet-700 font-medium transition-colors"
-          >
-            Refresh
-          </button>
-        )}
-      </div>
-      {loading && (
-        <p className="text-sm text-gray-400 italic">Thinking it over…</p>
-      )}
-      {!loading && error && (
-        <p className="text-sm text-gray-500">{error}</p>
-      )}
-      {!loading && !error && insight && (
-        <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>
+        <div className="flex items-center gap-3 min-w-0">
+          {!expanded && insight && !loading && !error && (
+            <span className="text-xs text-violet-600/70 truncate max-w-[160px] sm:max-w-xs">
+              {insight}
+            </span>
+          )}
+          <span className="text-violet-400 text-xs flex-shrink-0">
+            {expanded ? "▲" : "▼"}
+          </span>
+        </div>
+      </button>
+      {expanded && (
+        <div className="px-5 pb-5 -mt-1">
+          <div className="flex justify-end mb-2">
+            {!loading && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  generate();
+                }}
+                className="text-xs text-violet-500 hover:text-violet-700 font-medium transition-colors"
+              >
+                Refresh
+              </button>
+            )}
+          </div>
+          {loading && (
+            <p className="text-sm text-gray-400 italic">Thinking it over…</p>
+          )}
+          {!loading && error && (
+            <p className="text-sm text-gray-500">{error}</p>
+          )}
+          {!loading && !error && insight && (
+            <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>
+          )}
+        </div>
       )}
     </div>
   );
