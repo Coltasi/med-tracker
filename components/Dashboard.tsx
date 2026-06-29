@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppData } from "@/types";
 import {
   LineChart,
@@ -15,10 +15,76 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { format, parseISO } from "date-fns";
+import {
+  fetchInsight,
+  getCachedInsight,
+  isInsightFresh,
+  setCachedInsight,
+} from "@/lib/insight";
 
 interface Props {
   data: AppData;
   onNewCheckIn: () => void;
+}
+
+function AIInsightCard({ data }: { data: AppData }) {
+  const [insight, setInsight] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function generate() {
+    setLoading(true);
+    setError(null);
+    fetchInsight(data.checkIns.slice(0, 14), data.currentDosage)
+      .then((text) => {
+        setInsight(text);
+        setCachedInsight(text);
+      })
+      .catch((err: Error) => {
+        setError(err.message || "Couldn't generate an insight right now.");
+      })
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    if (data.checkIns.length === 0) return;
+    const cached = getCachedInsight();
+    if (isInsightFresh(cached)) {
+      setInsight(cached!.insight);
+      return;
+    }
+    generate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (data.checkIns.length === 0) return null;
+
+  return (
+    <div className="bg-gradient-to-br from-violet-50 to-brand-50 rounded-2xl p-5 shadow-sm border border-violet-100">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-sm font-semibold text-violet-700 uppercase tracking-wide flex items-center gap-1.5">
+          <span>✨</span> Daily Insight
+        </h2>
+        {!loading && (
+          <button
+            onClick={generate}
+            className="text-xs text-violet-500 hover:text-violet-700 font-medium transition-colors"
+          >
+            Refresh
+          </button>
+        )}
+      </div>
+      {loading && (
+        <p className="text-sm text-gray-400 italic">Thinking it over…</p>
+      )}
+      {!loading && error && (
+        <p className="text-sm text-gray-500">{error}</p>
+      )}
+      {!loading && !error && insight && (
+        <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>
+      )}
+    </div>
+  );
 }
 
 // "Bad" metrics (high = bad) get warning/red tones. Everything else (high = good)
@@ -218,6 +284,9 @@ export default function Dashboard({ data, onNewCheckIn }: Props) {
         </div>
       ) : (
         <>
+          {/* AI insight */}
+          <AIInsightCard data={data} />
+
           {/* Score cards */}
           <div>
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
